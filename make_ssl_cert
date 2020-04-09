@@ -1,0 +1,28 @@
+#!/usr/bin/bash
+
+mkdir -p /etc/grid-security/daemon/
+if [[ ! -e "/etc/grid-security/hostcert.pem" ]]; then
+    yum install -y openssl >& /dev/null
+    openssl req -new -x509 -days 3650 -nodes -out /etc/grid-security/hostcert.pem -keyout /etc/grid-security/hostkey.pem >& /dev/null<< EOF
+
+
+
+
+
+
+
+
+
+
+EOF
+fi
+
+cp /etc/grid-security/hostcert.pem /etc/grid-security/daemon/hostcert.pem;
+cp /etc/grid-security/hostkey.pem /etc/grid-security/daemon/hostkey.pem;
+chown -R daemon:daemon /etc/grid-security/daemon
+
+[[ ! -e "/etc/grid-security/hostcert.pem" || ! -e "/etc/grid-security/hostkey.pem" ]] && { echo "no hosts certs available"; exit 1; }
+
+chmod 400 /etc/grid-security/hostkey.pem
+chmod 600 /etc/grid-security/hostcert.pem
+
