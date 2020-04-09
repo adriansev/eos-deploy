@@ -1,0 +1,3 @@
+# add "quark" as argument for installation of quarkdb packages
+bash <(curl -fskSL https://raw.githubusercontent.com/adriansev/eos-deploy/master/eos_packages_install)
+
