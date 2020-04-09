@@ -13,6 +13,12 @@ for repofile in $(grep -l epel /etc/yum.repos.d/*); do
     sed -i 's/xrootd\*/xrootd\*,libmicrohttpd\*/g' ${repofile};
 done
 
+# Prepare repository and install the CA certificates
+yum-config-manager --add-repo=http://repository.egi.eu/sw/production/cas/1/current/repo-files/EGI-trustanchors.repo
+yum install -y ca-policy-egi-core || yum update -y ca-policy-egi-core
+rm -rf /etc/grid-security/certificates/nginx-bundle.pem >& /dev/null;
+cat /etc/grid-security/certificates/*.pem > /etc/grid-security/certificates/nginx-bundle.pem
+
 # xrootd upstream repositories
 # see https://xrootd.slac.stanford.edu/binaries/ contents for other versions
 yum-config-manager --add-repo=https://xrootd.slac.stanford.edu/binaries/xrootd-stable-slc7.repo
