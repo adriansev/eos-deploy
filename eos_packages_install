@@ -1,0 +1,41 @@
+#!/usr/bin/bash
+
+DO_QUARKDB=""
+[[ "${1}" == "quark" ]] && DO_QUARKDB="yes"
+
+# install epel if it's not yet installed
+yum install -y epel-release
+
+# exclude epel xrootd and libmicrohttpd
+# N.B.!!! the current exclusion list will be lost
+yum-config-manager --enablerepo=* --save --setopt=epel\*.exclude='xrootd*';
+for repofile in $(grep -l epel /etc/yum.repos.d/*); do
+    sed -i 's/xrootd\*/xrootd\*,libmicrohttpd\*/g' ${repofile};
+done
+
+# xrootd upstream repositories
+# see https://xrootd.slac.stanford.edu/binaries/ contents for other versions
+yum-config-manager --add-repo=https://xrootd.slac.stanford.edu/binaries/xrootd-stable-slc7.repo
+yum-config-manager --enable xrootd-stable
+
+# add eos repositories
+yum-config-manager --add-repo=https://raw.githubusercontent.com/cern-eos/eos/master/utils/eos-el7.repo
+yum-config-manager --enable eos-citrine\*
+
+# install xrootd
+yum --exclude=xrootd-fuse install -y xrootd xrootd-client xrootd-client-devel xrootd-client-libs xrootd-devel xrootd-libs xrootd-private-devel xrootd-selinux xrootd-server xrootd-server-devel xrootd-server-libs
+
+# install base eos packages and the bash completion for eos command
+yum install -y bash-completion.noarch bash-completion-extras.noarch \
+jemalloc.x86_64 jemalloc-devel.x86_64 \
+eos-server eos-client eos-fuse eos-nginx
+
+if [[ -n "${DO_QUARKDB}" ]]; then
+# add quarkdb repositories
+    yum-config-manager --add-repo=http://storage-ci.web.cern.ch/storage-ci/quarkdb/tag/el7/x86_64/
+    yum-config-manager --enable quarkdb
+    yum install -y quarkdb redis
+    yum install -y --nogpgcheck libmicrohttpd libmicrohttpd-devel
+    yum install -y --nogpgcheck eos-rocksdb eos-testkeytab
+fi
+
