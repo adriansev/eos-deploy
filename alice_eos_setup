@@ -1,0 +1,43 @@
+#!/usr/bin/bash
+
+# ?
+eos -b vid enable sss
+eos -b vid enable https
+
+# adds a host as a (fuse) gateway with 'su' priviledges
+eos -b vid add gateway mgm
+
+# Create local uid/gid coresponding to aliprod:alice definition from cern ldap
+groupadd -g 1395 alice
+useradd -m -g alice -u 10367 aliprod
+
+# create main storage path structures and map them to eos location
+ALICE_GRID_PATH="/eos/alice/grid"
+eos -b mkdir ${ALICE_GRID_PATH}
+for name in $(seq -w 00 15); do 
+    echo -e "mkdir /eos/alice/grid/${name}\nmap link /${name}/ /eos/alice/grid/${name}/" | eos -b
+done
+
+echo -e "chown -r aliprod:alice ${ALICE_GRID_PATH}\nchmod 777 ${ALICE_GRID_PATH}" | eos -b
+
+# everybody authenticated via UNIX will be mapped to the ALICE user 10367(aliprod) and the corresponding group
+# Andreas dixit :)
+eos -b 'vid set map -unix \\<pwd\\> vuid:10367'
+eos -b 'vid set map -unix \\<pwd\\> vgid:1395'
+
+
+eos -b space config default space.scaninterval=1814400
+eos -b space config default space.autorepair=on
+eos -b space config default space.graceperiod=3600
+eos -b space config default space.drainperiod=86400
+eos -b space config default space.headroom=5.1G
+
+eos -b space config default fs.scaninterval=1814400
+eos -b space config default fs.graceperiod=3600
+eos -b space config default fs.drainperiod=86400
+eos -b space config default fs.headroom=5.1G
+
+# enable a fst node
+eos -b node set fst01.spacescience.ro on
+
+
