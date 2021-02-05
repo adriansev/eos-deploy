@@ -1,0 +1,33 @@
+#!/usr/bin/env bash
+
+TGT="${1}"
+shift
+
+NOW="$(date +%Y%m%d_%H%M%S)"
+
+ssh ${TGT} mv /etc/xrd.cf.fst /etc/xrd.cf.fst.${NOW}
+scp /etc/xrd.cf.fst ${TGT}:/etc/
+
+cp /etc/sysconfig/eos_env /tmp/eos_env
+sed --follow-symlinks -i "/^XRD_ROLES=/s/.*/XRD_ROLES=\"fst\"/" /tmp/eos_env
+ssh ${TGT} mv /etc/sysconfig/eos_env /etc/sysconfig/eos_env.${NOW}
+scp /tmp/eos_env ${TGT}:/etc/sysconfig/eos_env
+rm -rf /tmp/eos_env
+
+scp /etc/eos.keytab ${TGT}:/etc/
+
+ssh ${TGT} "chown -R daemon:daemon /storage*"
+ssh ${TGT} systemctl restart eos@fst
+
+# ssh ${TGT} "eosfstregister -r mgm.spacescience.ro /storage default:$(ls -1d /storage*|wc -l)"
+# eos fs mv --force 5 default.4
+# eos fs boot 5
+# eos fs mv --force 6 default.5
+# eos fs boot 6
+# eos fs mv --force 7 default.6
+# eos fs boot 7
+
+# eos node config fst02.spacescience.ro:1095 gw.rate=2000
+# eos node config fst02.spacescience.ro:1095 gw.ntx=100
+# eos node txgw fst02.spacescience.ro:1095 on
+# eos node set fst02.spacescience.ro:1095 on

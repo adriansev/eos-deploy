@@ -1,0 +1,27 @@
+#!/usr/bin/bash
+
+help() {
+echo "1st arg should be the ssh alias or host of fst
+2nd arg is storage directories prefix
+3rd arg is present is the name of space"
+}
+
+#[[ -z "${1}" ]] && { help; exit; }
+#[[ -z "${2}" ]] && { help; exit; }
+
+#FST="${1}"
+#MNT="${2}"
+
+# ssh ${TGT} "eosfstregister -r mgm.spacescience.ro /storage default:$(ls -1d /storage*|wc -l)"
+# eos fs mv --force 5 default.4
+# eos fs boot 5
+# eos fs mv --force 6 default.5
+# eos fs boot 6
+# eos fs mv --force 7 default.6
+# eos fs boot 7
+
+# eos node config fst02.spacescience.ro:1095 gw.rate=2000
+# eos node config fst02.spacescience.ro:1095 gw.ntx=100
+# eos node txgw fst02.spacescience.ro:1095 on
+# eos node set fst02.spacescience.ro:1095 on
+
