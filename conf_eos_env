@@ -1,0 +1,46 @@
+#!/usr/bin/bash
+
+# This will configure the /etc/xrootd-* services configurations
+
+#EOSCFG='/etc/sysconfig/eos_env'
+EOSCFG_EXAMPLE='./eos_env.example'
+EOSCFG='./eos_env'
+
+cp -f ${EOSCFG_EXAMPLE} ${EOSCFG}
+
+#echo -e '[[ -e /opt/eos/xrootd/bin/xrootd ]] && export PATH="/opt/eos/xrootd/bin/:${PATH}"\n' > ${EOSCFG}
+
+comment () { sed -E -i "/${1}/s/^/# /" ${EOSCFG}; }
+uncomment () { sed -E -i "/${1}/s/^[ \t]*#+[ \t]*//" ${EOSCFG}; }
+set_value () { uncomment "${1}"; sed -E -i "/${1}/s/${1}=.*/${1}=${2}/" ${EOSCFG}; }
+get_line_nr () { awk -v r="${1}" '$0~r {print NR}' ${EOSCFG}; }
+line_insert () { sed -i "$(get_line_nr ${1}) i ${2}" ${EOSCFG}; }
+line_append () { sed -i "$(get_line_nr ${1}) a ${2}" ${EOSCFG}; }
+
+comment "XRD_ROLES"
+line_append "XRD_ROLES" 'XRD_ROLES="mq mgm"'
+
+set_value EOS_MGM_HOST '"mgm.spacescience.ro"'
+set_value EOS_INSTANCE_NAME '"eosalice"'
+comment EOS_MGM_HOST_TARGET
+set_value EOS_BROKER_URL '"mgm.spacescience.ro"'  # or localhost if on mgm ... questionable
+
+# REQUIRED!!! EOS will not start with the default empty value
+set_value EOS_GEOTAG '"::ISS"'
+
+set_value EOS_MGM_MASTER1    '"mgm.spacescience.ro"'
+set_value EOS_MGM_MASTER2    '"mgm.spacescience.ro"'
+set_value EOS_MGM_ALIAS      '"mgm.spacescience.ro"'
+set_value EOS_FUSE_MGM_ALIAS '"mgm.spacescience.ro"'
+
+set_value EOS_MAIL_CC '"glite@spacescience.ro"'
+
+uncomment EOS_USE_SHARED_MUTEX
+uncomment EOS_FST_NO_SSS_ENFORCEMENT
+
+# Quarkdb setup
+set_value EOS_QUARKDB_HOSTPORT '"localhost:7001,localhost:7002,localhost:7003"'
+
+source ./quarkdb_priv  # contains the quarkdb password
+set_value EOS_QUARKDB_PASSWD "\'${REDIS_PASS}\'"
+
