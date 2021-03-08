@@ -1,0 +1,70 @@
+#!/usr/bin/bash
+
+help() {
+echo "1st arg should be the ssh alias or host of fst
+2nd arg is storage directories prefix
+3rd arg if present, is the name of space"
+}
+
+[[ -z "${1}" ]] && { help; exit; }
+[[ -z "${2}" ]] && { help; exit; }
+
+FST="${1}"
+MNT="${2}"
+
+SPACE="${3:-default}"
+
+declare -a fsid_list
+declare -a sched_list
+
+while IFS= read -r fs_info; do
+    eval $(awk '{ for (idx = 1; idx <= NF; idx++) { if ( match($idx, /^id.*/) > 0 || match($idx, "schedgroup") > 0 ) print($idx); };  }' <<< "${fs_info}" ) #'
+    if [[ "${schedgroup}" =~ ^${SPACE} ]]; then
+        sched_list+=($(echo ${schedgroup}| sed "s/${SPACE}\.//" ));
+        fsid_list+=("${id}");
+    fi
+done <<< "$(eos fs ls -b -m)"
+
+LAST_FSID="${fsid_list[-1]}"
+LAST_SCHED="${sched_list[-1]}"
+
+FST_PORT=1095
+
+CMDS='echo -ne "FSTHOST=\"$(hostname)\"\nmnt_fs=\"$(ls -1dx '
+CMDS="${CMDS}${MNT}"
+CMDS="${CMDS}"'*)\"\n"'
+
+SSHCMD=$(echo "${CMDS}" | /usr/bin/base64 -w0)
+eval $(ssh ${FST} "echo ${SSHCMD} | /usr/bin/base64 -d | /usr/bin/bash")
+
+ADD_FSID="${LAST_FSID}"
+ADD_SCHED="${LAST_SCHED}"
+dirs_array=(${mnt_fs})
+for mnt in ${dirs_array[@]};do
+    IS_SETUP=$(ssh ${FST} "cat ${mnt}/.eosfsid ${mnt}/.eosfsuuid 2>/dev/null" )
+    [[ -n "${IS_SETUP}" ]] && { echo "${mnt} on ${FSTHOST} is already registered"; continue; }
+    ADD_FSID="$(( ADD_FSID + 1 ))"
+    ADD_SCHED="$(( ADD_SCHED +1 ))"
+    UUID="$(uuidgen)"
+    CMDS2="echo -ne ${ADD_FSID} > ${mnt}/.eosfsid; echo ${UUID} > ${mnt}/.eosfsuuid; chown -R daemon:daemon ${mnt}"
+    SSHCMD2=$(echo "${CMDS2}" | /usr/bin/base64 -w0)
+    ssh ${FST} "echo ${SSHCMD2} | /usr/bin/base64 -d | /usr/bin/bash"
+    echo eos -b fs add -m ${ADD_FSID} "${UUID}" ${FSTHOST}:${FST_PORT} "${mnt}" "${SPACE}.${ADD_SCHED}" rw
+    eos -b fs boot "${UUID}"
+done
+
+# fs add [-m|--manual <fsid>] <uuid> <node-queue>|<host>[:<port>] <mountpoint> [<space_info>] [<status>]
+# add and assign a filesystem based on the unique identifier of the disk <uuid>
+# -m|--manual  : add with user specified <fsid> and <space>
+# <fsid>       : numeric filesystem id 1...65535
+# <uuid>       : unique string identifying current filesystem
+# <node-queue> : internal EOS identifier for a node e.g /eos/<host>:<port>/fst
+# it is preferable to use the host:port syntax
+# <host>       : FQDN of host where filesystem is mounter
+# <port>       : FST XRootD port number [usually 1095]
+# <mountponit> : local path of the mounted filesystem e.g /data/
+# <space_info> : space or space.group location where to insert the filesystem,
+# if nothing is specified then space "default" is used. E.g:
+# default, default.7, ssd.3, spare
+# <status>     : set filesystem status after insertion e.g off|rw|ro|empty etc.
+
