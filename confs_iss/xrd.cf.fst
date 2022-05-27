@@ -11,6 +11,14 @@ xrootd.async off nosf
 xrd.network keepalive
 xrootd.redirect $(MGM):1094 chksum
 
+# Specify when threads are created, how many can be created, and when they should be destroyed.
+# http://xrootd.org/doc/dev48/xrd_config.htm#_Toc496911324
+xrd.sched mint 8 avlt 16 idle 60 maxt 160
+
+# Set timeout parameters for incoming connections
+# http://xrootd.org/doc/dev48/xrd_config.htm#_Toc496911326
+xrd.timeout hail 30 kill 10 read 20 idle 600
+
 ###########################################################
 xrootd.seclib libXrdSec.so
 sec.protocol unix
@@ -38,6 +46,10 @@ fstofs.metalog /var/eos/md/
 #fstofs.authdir /var/eos/auth/
 #fstofs.trace client
 ###########################################################
+
+# QuarkDB cluster info needed by FSCK to perform the namespace scan
+fstofs.qdbcluster mgm.spacescience.ro:7001 mgm.spacescience.ro:7002 mgm.spacescience.ro:7003
+fstofs.qdbpassword bab6520d-5a5a-446b-925d-13e63774478b
 
 #-------------------------------------------------------------------------------
 # Configuration for XrdHttp http(s) service on port 11000

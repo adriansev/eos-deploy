@@ -26,14 +26,20 @@ EOS_MGM_HOST='mgm.spacescience.ro'
 # The fully qualified hostname of target MGM
 # EOS_MGM_HOST_TARGET=mgm-slave.localdomain
 
-# The EOS instance name
+# The EOS instance name N.B.! It MUST start with "eos" and then some alphanumeric characters
+# This is important since there are some special files and directories created inside the /eos/<instance_name> subtree
+# indispensable for the proper functioning of the instance.
 EOS_INSTANCE_NAME='eosalice'
 
 # The EOS configuration to load after daemon start
 EOS_AUTOLOAD_CONFIG=default
 
+# The EOS broker URL
+EOS_BROKER_URL="root://mgm.spacescience.ro:1097//eos/"
+
 # The EOS host geo location tag used to sort hosts into geographical (rack) locations
-EOS_GEOTAG="::ISS"
+# !!! REQUIRED !!! list of ":" separated tokens of up to 8 chars
+EOS_GEOTAG="ISS::ALICE"
 
 # The fully qualified hostname of MGM master1
 EOS_MGM_MASTER1='mgm.spacescience.ro'
@@ -43,10 +49,9 @@ EOS_MGM_MASTER2='mgm.spacescience.ro'
 
 # The alias which selects master 1 or 2
 EOS_MGM_ALIAS='mgm.spacescience.ro'
-EOS_FUSE_MGM_ALIAS='mgm.spacescience.ro'
 
-# The EOS broker URL
-EOS_BROKER_URL="root://localhost:1097//eos/"
+# In HA mode, presence of this env enables the redirection of the read traffic from the slaves to the master
+# EOS_HA_REDIRECT_READS=1
 
 # The mail notification in case of fail-over
 EOS_MAIL_CC="glite@spacescience.ro"
@@ -61,6 +66,12 @@ EOS_NOTIFY="mail -s $(date +%s)-$(hostname)-eos-notify $EOS_MAIL_CC"
 # Enable coverage report signal handler
 #EOS_COVERAGE_REPORT
 
+# Enable QoS support
+#EOS_ENABLE_QOS=""
+
+# Enable Converter Engine
+#EOS_CONVERTER_DRIVER=1
+
 # Allow UTF-8 path names excluding only CR,LF
 #EOS_UTF8=""
 
@@ -68,7 +79,7 @@ EOS_NOTIFY="mail -s $(date +%s)-$(hostname)-eos-notify $EOS_MAIL_CC"
 #EOS_SECONDARY_GROUPS=0
 
 # Do subtree accounting on directories (set to 1 to enable)
-#EOS_NS_ACCOUNTING=0
+EOS_NS_ACCOUNTING=1
 
 # Do sync time propagation (set to 1 to enable)
 #EOS_SYNCTIME_ACCOUNTING=0
@@ -98,14 +109,11 @@ EOS_FST_NO_SSS_ENFORCEMENT=1
 # Network interface to monitor (default eth0)
 #EOS_FST_NETWORK_INTERFACE="eth0"
 
-# Stream timeout for operations
-#EOS_FST_STREAM_TIMEOUT=300
-
 # Specify in seconds how often FSTs should query for new delete operations
 # EOS_FST_DELETE_QUERY_INTERVAL=300
 
-# Disable fast boot and always do a full resync when a fs is booting (default off)
-# EOS_FST_NO_FAST_BOOT=0
+# Disable fast boot and always do a full resync when a fs is booting
+# EOS_FST_NO_FAST_BOOT=0 (default off)
 
 # If variable defined then enable the use of xrootd connection pool i.e. create/share different physical connections for queries done from the FST
 # to the MGM in the CallManager method. By default this is disabled.
@@ -120,6 +128,24 @@ EOS_FST_NO_SSS_ENFORCEMENT=1
 
 # Modify the TPC key validity which by default is 120 seconds
 # EOS_FST_TPC_KEY_VALIDITY_SEC=120
+
+# Store FMD database on the same partition as the data disk
+# EOS_FST_FMD_ON_DATA_DISK=0
+
+# Control the asynchronous callback on close, if undefined or 0 then disabled, else if 1 then enabled.
+# EOS_FST_ASYNC_CLOSE=0
+
+# Enable caching of leveldb info in memory to speed up scanning operations
+# for fsck inconsistencies
+EOS_FST_CACHE_LEVELDB=1
+
+# Enable internal stacktrace printing in the logs - this is useful especially
+# for container environments where abrtd is not running
+# EOS_FST_ENABLE_STACKTRACE=1
+
+# Enable async writes between replicas - this can improve the performance for
+# FSTs with long latency.
+# EOS_FST_REPLICA_ASYNC_WRITE=1
 
 #-------------------------------------------------------------------------------
 # HTTPD Configuration
@@ -146,86 +172,43 @@ EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
 # Timeout after which an idle connection is considered to be closed (default 2 min)
 EOS_HTTP_CONNECTION_TIMEOUT=30
 
+# Enable XrdHttp with NGINX proxy - this opens a security issue if enabled since direct clients can overwrite their
+# IP and pretend to be localhost
+# EOS_XRDHTTP_NGINX_PROXY=1 (default undefined)
 
 #-------------------------------------------------------------------------------
-# QuarkDB Configuration
+# GRPC Configuration
 #-------------------------------------------------------------------------------
 
-# QuarkDB Hostport
-EOS_QUARKDB_HOSTPORT='localhost:7001,localhost:7002,localhost:7003'
+# GRPC port - set to 0 toi disable GRPC
+# EOS_MGM_GRPC_PORT=50051
 
-# QuarkDB Password
-EOS_QUARKDB_PASSWD='XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX'
-
-#-------------------------------------------------------------------------------
-# MGM TTY Console Broadcast Configuration
-#-------------------------------------------------------------------------------
-
-# define the log file where you want to grep
-EOS_TTY_BROADCAST_LISTEN_LOGFILE="/var/log/eos/mgm/xrdlog.mgm"
-
-# define the log file regex you want to broad cast to all consoles
-EOS_TTY_BROACAST_EGREP='"CRIT|ALERT|EMERG|PROGRESS"'
+# GRPC security - define to enable SSL server
+# EOS_MGM_GRPC_SSL_CERT
+# EOS_MGM_GRPC_SSL_KEY
+# EOS_MGM_GRPC_SSL_CA
 
 #-------------------------------------------------------------------------------
-# MGM Namespace Preset Size - this can safe memory for large namespaces if you know an upper limit for the namespace size
-#-------------------------------------------------------------------------------
-# EOS_NS_DIR_SIZE=1000000
-# EOS_NS_FILE_SIZE=1000000
-
-# ------------------------------------------------------------------
-# MGM Boot options
-# ------------------------------------------------------------------
-# uncomment to avoid mmaping a changelog file
-# EOS_NS_BOOT_NOMMAP
-
-# uncomment to speed up the scanning phase skipping CRC32 computation
-# EOS_NS_BOOT_NOCRC32
-
-# uncomment to allow a multi-threaded boot process using maximum number of cores available
-EOS_NS_BOOT_PARALLEL=1
-
-# ------------------------------------------------------------------
-# MGM FUSE configuration
-# ------------------------------------------------------------------
-
-# uncomment to change the minimum needed size available to create a new file
-# EOS_MGM_FUSE_BOOKING_SIZE = 5368709120
-
-#-------------------------------------------------------------------------------
-# Archive configuration
+# Configure GRPC server dedicated for access via Windows native client (EOS-wnc)
 #-------------------------------------------------------------------------------
 
-# Set the root destination for all archives beloging to this instance
-# EOS_ARCHIVE_URL=root://castorpps.cern.ch//user/cern.ch/c3/archive/
+# GRPC Wnc port - set to 0 to disable EOS-wnc server
+# EOS_MGM_WNC_PORT=50052
 
-# Set the CASTOR service class (svcClass) for all file transfers to CASTOR
-# EOS_ARCHIVE_SVCCLASS=default
+# Define to enable SSL authentication on EOS-wnc server
+# EOS_MGM_WNC_SSL_CERT
+# EOS_MGM_WNC_SSL_KEY
+# EOS_MGM_WNC_SSL_CA
 
 #-------------------------------------------------------------------------------
-# Test Configuration
+# FUSEX Configuration
 #-------------------------------------------------------------------------------
 
-# Mail notification for failed tests
-#EOS_TEST_MAILNOTIFY=apeters@mail.cern.ch
+# Listener port of the ZMQ server used by FUSEx)
+# EOS_MGM_FUSEX_PORT=1100
 
-# SMS notification for failed tests
-#EOS_TEST_GSMNOTIFY="0041764875002@mail2sms.cern.ch"
-
-# Instance name = name of directory at deepness 2 /eos/<instance>/
-#EOS_TEST_INSTANCE="dev"
-
-# MGM host redirector
-#EOS_TEST_REDIRECTOR=localhost
-
-# Local test output directory
-#EOS_TEST_TESTSYS=/tmp/eos-instance-test
-
-# Time to lock re-sending of SMS for consecutively failing tests
-#EOS_TEST_GSMLOCKTIME=3600
-
-# Max. time given to the test to finish
-#EOS_TEST_TESTTIMESLICE=600
+# Maximum number of 'listable' children
+# EOS_MGM_FUSEX_MAX_CHILDREN=32768
 
 #-------------------------------------------------------------------------------
 # Federation Configuration
@@ -244,24 +227,87 @@ EOS_PSS_MGM=$EOS_MGM_ALIAS:1094
 EOS_PSS_PATH=/
 
 #-------------------------------------------------------------------------------
-# GRPC Configuration
+# QuarkDB Configuration
 #-------------------------------------------------------------------------------
 
-# GRPC port - set to 0 toi disable GRPC
-# EOS_MGM_GRPC_PORT=50051
+# QuarkDB Hostport
+EOS_QUARKDB_HOSTPORT='localhost:7001,localhost:7002,localhost:7003'
 
-# GRPC security - define to enable SSL server
-# EOS_MGM_GRPC_SSL_CERT
-# EOS_MGM_GRPC_SSL_KEY
-# EOS_MGM_GRPC_SSL_CA
+# QuarkDB Password
+EOS_QUARKDB_PASSWD='bab6520d-5a5a-446b-925d-13e63774478b'
+
+EOS_USE_QDB_MASTER=1
 
 #-------------------------------------------------------------------------------
-# FUSEX Configuration
+# Archive configuration
 #-------------------------------------------------------------------------------
 
-# Listener port of the ZMQ server used by FUSEx)
-# EOS_MGM_FUSEX_PORT=1100
+# Set the root destination for all archives beloging to this instance
+# EOS_ARCHIVE_URL=root://castorpps.cern.ch//user/cern.ch/c3/archive/
 
-# Maximum number of 'listable' children
-# EOS_MGM_FUSEX_MAX_CHILDREN=32768
+# Set the CASTOR service class (svcClass) for all file transfers to CASTOR
+# EOS_ARCHIVE_SVCCLASS=default
+
+#-------------------------------------------------------------------------------
+# MGM TTY Console Broadcast Configuration
+#-------------------------------------------------------------------------------
+
+# define the log file where you want to grep
+EOS_TTY_BROADCAST_LISTEN_LOGFILE="/var/log/eos/mgm/xrdlog.mgm"
+
+# define the log file regex you want to broad cast to all consoles
+EOS_TTY_BROACAST_EGREP="\"CRIT|ALERT|EMERG|PROGRESS\""
+
+#-------------------------------------------------------------------------------
+# MGM Namespace Preset Size - this can safe memory for large namespaces if you know an upper limit for the namespace size
+#-------------------------------------------------------------------------------
+# EOS_NS_DIR_SIZE=1000000
+# EOS_NS_FILE_SIZE=1000000
+
+# ------------------------------------------------------------------
+# MGM Boot options
+# ------------------------------------------------------------------
+# uncomment to avoid mmaping a changelog file
+# EOS_NS_BOOT_NOMMAP
+
+# uncomment to speed up the scanning phase skipping CRC32 computation
+EOS_NS_BOOT_NOCRC32=1
+
+# uncomment to allow a multi-threaded boot process using maximum number of cores available
+EOS_NS_BOOT_PARALLEL=1
+
+# ------------------------------------------------------------------
+# MGM FUSE configuration
+# ------------------------------------------------------------------
+
+# uncomment to change the minimum needed size available to create a new file
+# EOS_MGM_FUSE_BOOKING_SIZE = 5368709120
+
+# ------------------------------------------------------------------
+# MGM 'xrdfs query space' configuration
+# ------------------------------------------------------------------
+
+# uncoment to set the EOS space name to be used by 'xrdfs query space' commands that do not explicitly specify an EOS space name
+EOS_MGM_STATVFS_DEFAULT_SPACE="default"
+
+# ------------------------------------------------------------------
+# MGM Directory Listing Cache configuration
+
+# set to 0 to disable listing cache for 'xrdfs ls' and 'eos ls', or a number with the number of dirs to cache
+# EOS_MGM_LISTING_CACHE=1024
+
+# ------------------------------------------------------------------
+# MGM OIDC configuration
+# ------------------------------------------------------------------
+# by default the sub field is mapped from OIDC tokens
+# EOS_MGM_OIDC_MAP_FIELD=sub
+
+# by default (undefined) the server certificate and hostname are verified, to skip this, define
+# EOS_MGM_OIDC_INSECURE=1
+
+# ------------------------------------------------------------------
+# MGM token generation configuration
+# ------------------------------------------------------------------
+# by default the token generation key is derived from an sss key
+# EOS_MGM_TOKEN_KEYFILE=/etc/eos/token.key
 
