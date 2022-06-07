@@ -1,6 +1,7 @@
 #-------------------------------------------------------------------------------
 # File: eos_env.example
-# Authors: Ivan Arizanovic - ComTrade Solutions Engineering
+# Author: Ivan Arizanovic <ivan.arizanovic@comtrade.com>
+# Author: Branko Blagojevic <branko.blagojevic@comtrade.com>
 #-------------------------------------------------------------------------------
 
 # ************************************************************************
@@ -51,7 +52,9 @@ EOS_MGM_HOST=mgm-master.localdomain
 # The fully qualified hostname of target MGM
 EOS_MGM_HOST_TARGET=mgm-slave.localdomain
 
-# The EOS instance name
+# The EOS instance name N.B.! It MUST start with "eos" and then some alphanumeric characters
+# This is important since there are some special files and directories created inside the /eos/<instance_name> subtree
+# indispensable for the proper functioning of the instance.
 EOS_INSTANCE_NAME=eosdev
 
 # The EOS configuration to load after daemon start
@@ -61,6 +64,7 @@ EOS_AUTOLOAD_CONFIG=default
 EOS_BROKER_URL=root://localhost:1097//eos/
 
 # The EOS host geo location tag used to sort hosts into geographical (rack) locations
+# !!! REQUIRED !!! list of ":" separated tokens of up to 8 chars
 EOS_GEOTAG=""
 
 # The fully qualified hostname of MGM master1
@@ -71,6 +75,10 @@ EOS_MGM_MASTER2=eosdevsrv2.cern.ch
 
 # The alias which selects master 1 or 2
 EOS_MGM_ALIAS=eosdev.cern.ch
+
+# In HA mode, presence of this env enables the redirection of the
+# read traffic from the slaves to the master
+# EOS_HA_REDIRECT_READS=1
 
 # The mail notification in case of fail-over
 EOS_MAIL_CC="apeters@mail.cern.ch"
@@ -84,6 +92,12 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 
 # Enable coverage report signal handler
 #EOS_COVERAGE_REPORT
+
+# Enable QoS support
+#EOS_ENABLE_QOS=""
+
+# Enable Converter Engine
+#EOS_CONVERTER_DRIVER=1
 
 # Allow UTF-8 path names excluding only CR,LF
 #EOS_UTF8=""
@@ -127,9 +141,6 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # Network interface to monitor (default eth0)
 #EOS_FST_NETWORK_INTERFACE="eth0"
 
-# Stream timeout for operations
-#EOS_FST_STREAM_TIMEOUT=300
-
 # Specify in seconds how often FSTs should query for new delete operations
 # EOS_FST_DELETE_QUERY_INTERVAL=300
 
@@ -152,6 +163,25 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 
 # Modify the TPC key validity which by default is 120 seconds
 # EOS_FST_TPC_KEY_VALIDITY_SEC=120
+
+# Store FMD database on the same partition as the data disk
+# EOS_FST_FMD_ON_DATA_DISK=0
+
+# Control the asynchronous callback on close, if undefined or 0 then disabled,
+# else if 1 then enabled
+# EOS_FST_ASYNC_CLOSE=0
+
+# Enable caching of leveldb info in memory to speed up scanning operations
+# for fsck inconsistencies
+# EOS_FST_CACHE_LEVELDB=1
+
+# Enable internal stacktrace printing in the logs - this is useful especially
+# for container environments where abrtd is not running
+# EOS_FST_ENABLE_STACKTRACE=1
+
+# Enable async writes between replicas - this can improve the performance for
+# FSTs with long latency.
+# EOS_FST_REPLICA_ASYNC_WRITE=1
 
 #-------------------------------------------------------------------------------
 # HTTPD Configuration
@@ -178,6 +208,11 @@ EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
 # Timeout after which an idle connection is considered to be closed (default 2 min)
 # EOS_HTTP_CONNECTION_TIMEOUT=120
 
+# Enable XrdHttp with NGINX proxy - this opens a security issue if enabled since direct clients can overwrite their
+# IP and pretend to be localhost
+# EOS_XRDHTTP_NGINX_PROXY=1 (default undefined)
+
+
 #-------------------------------------------------------------------------------
 # GRPC Configuration
 #-------------------------------------------------------------------------------
@@ -189,6 +224,18 @@ EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
 # EOS_MGM_GRPC_SSL_CERT
 # EOS_MGM_GRPC_SSL_KEY
 # EOS_MGM_GRPC_SSL_CA
+
+#-------------------------------------------------------------------------------
+# Configure GRPC server dedicated for access via Windows native client (EOS-wnc)
+#-------------------------------------------------------------------------------
+
+# GRPC Wnc port - set to 0 to disable EOS-wnc server
+# EOS_MGM_WNC_PORT=50052
+
+# Define to enable SSL authentication on EOS-wnc server
+# EOS_MGM_WNC_SSL_CERT
+# EOS_MGM_WNC_SSL_KEY
+# EOS_MGM_WNC_SSL_CA
 
 #-------------------------------------------------------------------------------
 # FUSEX Configuration
@@ -298,3 +345,32 @@ EOS_TTY_BROACAST_EGREP="\"CRIT|ALERT|EMERG|PROGRESS\""
 
 # uncomment to change the minimum needed size available to create a new file
 # EOS_MGM_FUSE_BOOKING_SIZE = 5368709120
+
+
+# ------------------------------------------------------------------
+# MGM 'xrdfs query space' configuration
+# ------------------------------------------------------------------
+
+# uncoment to set the EOS space name to be used by 'xrdfs query space' commands
+# that do not explicitly specify an EOS space name
+# EOS_MGM_STATVFS_DEFAULT_SPACE="default"
+
+# ------------------------------------------------------------------
+# MGM Directory Listing Cache configuration
+
+# set to 0 to disable listing cache for 'xrdfs ls' and 'eos ls', or a number with the number of dirs to cache
+# EOS_MGM_LISTING_CACHE=1024
+
+# ------------------------------------------------------------------
+# MGM OIDC configuration
+# ------------------------------------------------------------------
+# by default the sub field is mapped from OIDC tokens
+# EOS_MGM_OIDC_MAP_FIELD=sub
+# by default (undefined) the server certificate and hostname are verified, to skip this, define
+# EOS_MGM_OIDC_INSECURE=1
+
+# ------------------------------------------------------------------
+# MGM token generation configuration
+# ------------------------------------------------------------------
+# by default the token generation key is derived from an sss key
+# EOS_MGM_TOKEN_KEYFILE=/etc/eos/token.key

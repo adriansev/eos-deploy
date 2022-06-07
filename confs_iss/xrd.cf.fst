@@ -49,7 +49,7 @@ fstofs.metalog /var/eos/md/
 
 # QuarkDB cluster info needed by FSCK to perform the namespace scan
 fstofs.qdbcluster mgm.spacescience.ro:7001 mgm.spacescience.ro:7002 mgm.spacescience.ro:7003
-fstofs.qdbpassword bab6520d-5a5a-446b-925d-13e63774478b
+fstofs.qdbpassword REDACTED
 
 #-------------------------------------------------------------------------------
 # Configuration for XrdHttp http(s) service on port 11000

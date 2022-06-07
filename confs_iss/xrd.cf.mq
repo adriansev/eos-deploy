@@ -32,5 +32,5 @@ mq.trace low
 mq.queue /eos/
 
 mqofs.qdbcluster localhost:7001 localhost:7002 localhost:7003
-mqofs.qdbpassword bab6520d-5a5a-446b-925d-13e63774478b
+mqofs.qdbpassword REDACTED
 
