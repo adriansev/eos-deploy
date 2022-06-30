@@ -3,6 +3,8 @@
 TGT="${1}"
 shift
 
+[[ -z ${TGT} ]] && { echo "provide the ssh alias for target machine"; exit 1; }
+
 NOW="$(date +%Y%m%d_%H%M%S)"
 
 ssh ${TGT} mv /etc/xrd.cf.fst /etc/xrd.cf.fst.${NOW}
@@ -17,17 +19,5 @@ rm -rf /tmp/eos_env
 scp /etc/eos.keytab ${TGT}:/etc/
 
 ssh ${TGT} "chown -R daemon:daemon /storage*"
-ssh ${TGT} systemctl restart eos@fst
+echo "now run on the target machine: systemctl restart eos@fst "
 
-# ssh ${TGT} "eosfstregister -r mgm.spacescience.ro /storage default:$(ls -1d /storage*|wc -l)"
-# eos fs mv --force 5 default.4
-# eos fs boot 5
-# eos fs mv --force 6 default.5
-# eos fs boot 6
-# eos fs mv --force 7 default.6
-# eos fs boot 7
-
-# eos node config fst02.spacescience.ro:1095 gw.rate=2000
-# eos node config fst02.spacescience.ro:1095 gw.ntx=100
-# eos node txgw fst02.spacescience.ro:1095 on
-# eos node set fst02.spacescience.ro:1095 on
