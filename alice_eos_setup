@@ -25,6 +25,8 @@ echo -e "chown -r aliprod:alice ${ALICE_GRID_PATH}\nchmod 777 ${ALICE_GRID_PATH}
 eos -b 'vid set map -unix \\<pwd\\> vuid:10367'
 eos -b 'vid set map -unix \\<pwd\\> vgid:1395'
 
+eos -b vid set membership 2 +sudo
+
 eos vid ls
 
 echo '
@@ -45,10 +47,4 @@ eos -b space config default fs.scaninterval=1814400
 eos -b space config default fs.graceperiod=3600
 eos -b space config default fs.drainperiod=86400
 eos -b space config default fs.headroom=5.1G
-
-echo '
-# enable a fst node
-eos -b node set fst01.spacescience.ro on
-'
-
 
