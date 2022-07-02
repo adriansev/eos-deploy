@@ -1,0 +1,26 @@
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p ipv6-icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+
+# Allow all storages
+-A INPUT -m state --state NEW -m iprange --src-range 2001:b30:4210:1::20-2001:b30:4210:1::40 -j ACCEPT
+
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 1095 -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8001 -j ACCEPT
+
+## cockpit
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 9090 -j ACCEPT --source 2001:b30:4210::/48
+
+## ML Speed rqst
+-A INPUT -m state --state NEW -p udp --dport 33434:33534 -j ACCEPT
+
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 60000 -j ACCEPT
+-A INPUT -d fe80::/64 -p udp -m udp --dport 546 -m state --state NEW -j ACCEPT
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
+

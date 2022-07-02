@@ -7,16 +7,27 @@ shift
 
 NOW="$(date +%Y%m%d_%H%M%S)"
 
+# backup node xrd.cf.fst
 ssh ${TGT} mv /etc/xrd.cf.fst /etc/xrd.cf.fst.${NOW}
+# sync fst config (prapared on mgm) to the node
 scp /etc/xrd.cf.fst ${TGT}:/etc/
 
+# prepare and sync the eos_env configuration
 cp /etc/sysconfig/eos_env /tmp/eos_env
 sed --follow-symlinks -i "/^XRD_ROLES=/s/.*/XRD_ROLES=\"fst\"/" /tmp/eos_env
 ssh ${TGT} mv /etc/sysconfig/eos_env /etc/sysconfig/eos_env.${NOW}
 scp /tmp/eos_env ${TGT}:/etc/sysconfig/eos_env
 rm -rf /tmp/eos_env
 
+# sync eos kerberos
 scp /etc/eos.keytab ${TGT}:/etc/
+
+# sync fst iptables templates
+# backup node iptables
+ssh ${TGT} "mv /etc/sysconfig/iptables /etc/sysconfig/iptables.${NOW};mv /etc/sysconfig/ip6tables /etc/sysconfig/ip6tables.${NOW};"
+scp "iptables/iptables" ${TGT}:/etc/sysconfig/
+scp "iptables/ip6tables" ${TGT}:/etc/sysconfig/
+ssh ${TGT} "systemctl restart iptables ip6tables"
 
 ssh ${TGT} "chown -R daemon:daemon /storage*"
 echo "now run on the target machine: systemctl restart eos@fst "

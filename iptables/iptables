@@ -1,0 +1,29 @@
+*filter
+:INPUT ACCEPT [0:0]
+:FORWARD ACCEPT [0:0]
+:OUTPUT ACCEPT [0:0]
+-A INPUT -m state --state RELATED,ESTABLISHED -j ACCEPT
+-A INPUT -p icmp -j ACCEPT
+-A INPUT -i lo -j ACCEPT
+
+# Allow all EOS
+-A INPUT -m state --state NEW -m iprange --src-range 85.120.46.20-85.120.46.40 -j ACCEPT
+
+## allow ALL from private net
+-A INPUT -s 172.18.0.0/22 -m state --state NEW -j ACCEPT
+
+## cockpit
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 9090 -j ACCEPT --source 85.120.46.0/24,46.243.114.128/25,172.20.0.0/24,10.10.8.0/22
+
+# xrootd access
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 1095 -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8001 -j ACCEPT
+
+## ML Speed rqst
+-A INPUT -m state --state NEW -p udp --dport 33434:33534 -j ACCEPT
+
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 60000 -j ACCEPT
+-A INPUT -j DROP
+-A FORWARD -j DROP
+COMMIT
+
