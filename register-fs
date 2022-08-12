@@ -1,28 +1,29 @@
 #!/usr/bin/bash
 
 help() {
-echo "1st arg should be the ssh alias or host of fst
-2nd arg is storage directories prefix
-3rd arg is present is the name of space"
+echo "1st arg should be the FSID, see eos fs ls
+2nd arg is the full FQDN of the FST
+3rd arg is the mountpoint of the host to add"
 }
 
-FSID="${}"
-FST="${}"
-MNT_DIR=${}
+FSID="${1}"
+FST="${2}"
+MNT_DIR=${3}
 
 SPACE="default"
 
-eos fs add -m ${FSID} $(uuidgen -r) ${FST}:1095 ${MNT_DIR} "${SPACE}.${FSID}" rw
+eos fs add -m ${FSID} $(uuidgen -r) ${FST}:1095 ${MNT_DIR} "${SPACE}.${FSID}" off
+eos group set "${SPACE}.${FSID}" on
+
+echo "
+Now inspect the output of eos fs ls and enable the fs with
+
+eos fs config ${FSID} configstatus=rw
+"
 
 #[[ -z "${1}" ]] && { help; exit; }
 #[[ -z "${2}" ]] && { help; exit; }
 
 #FST="${1}"
 #MNT="${2}"
-
-
-# eos node config fst02.spacescience.ro:1095 gw.rate=2000
-# eos node config fst02.spacescience.ro:1095 gw.ntx=100
-# eos node txgw fst02.spacescience.ro:1095 on
-# eos node set fst02.spacescience.ro:1095 on
 
