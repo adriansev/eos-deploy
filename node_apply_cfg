@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+
+# parse eos filesystems
+while IFS= read -r node_info; do
+    #eval $(awk '{ for (idx = 1; idx <= NF; idx++) { if ( match($idx, /^id.*/) > 0 || match($idx, "schedgroup") > 0 ) print($idx); };  }' <<< "${node_info}" ) #'
+
+    eval $(awk '{print $0}' <<< "${node_info}" ) #'
+
+    # apply properties to all found filesystems
+    eos -b fs config "${id}" headroom=5G
+    eos -b fs config "${id}" scaninterval=1814400
+
+done <<< "$(eos -b node ls -m)"
+
