@@ -27,7 +27,10 @@ scp /etc/eos.keytab ${TGT}:/etc/
 ssh ${TGT} "mv /etc/sysconfig/iptables /etc/sysconfig/iptables.${NOW};mv /etc/sysconfig/ip6tables /etc/sysconfig/ip6tables.${NOW};"
 scp "iptables/iptables" ${TGT}:/etc/sysconfig/
 scp "iptables/ip6tables" ${TGT}:/etc/sysconfig/
-ssh ${TGT} "systemctl restart iptables ip6tables"
+ssh ${TGT} "systemctl enable iptables ip6tables; systemctl restart iptables ip6tables"
+
+scp "/etc/mlsensor/mlsensor.properties" ${TGT}:/etc/mlsensor/
+ssh ${TGT} "systemctl enable mlsensor; systemctl restart mlsensor"
 
 ssh ${TGT} "chown -R daemon:daemon /storage*"
 echo "now run on the target machine: systemctl restart eos@fst "
