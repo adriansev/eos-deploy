@@ -6,7 +6,7 @@ while IFS= read -r fs_info; do
 
     # apply properties to all found filesystems
     eos -b fs config "${id}" headroom=5G
-    eos -b fs config "${id}" scaninterval=1814400
+    eos -b fs config "${id}" scaninterval=864000
 
 done <<< "$(eos -b fs ls -m)"
 
