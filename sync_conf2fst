@@ -12,6 +12,12 @@ ssh ${TGT} mv /etc/xrd.cf.fst /etc/xrd.cf.fst.${NOW}
 # sync fst config (prapared on mgm) to the node
 scp /etc/xrd.cf.fst ${TGT}:/etc/
 
+# sync eos kerberos
+scp /etc/eos.keytab ${TGT}:/etc/
+
+# sync quarkdb password file
+scp /etc/quarkdb.pass ${TGT}:/etc/
+
 # prepare and sync the eos_env configuration
 cp /etc/sysconfig/eos_env /tmp/eos_env
 sed --follow-symlinks -i "/^XRD_ROLES=/s/.*/XRD_ROLES=\"fst\"/" /tmp/eos_env
