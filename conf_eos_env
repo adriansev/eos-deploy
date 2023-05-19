@@ -26,7 +26,7 @@ comment EOS_MGM_HOST_TARGET
 set_value EOS_BROKER_URL '"mgm.spacescience.ro"'  # or localhost if on mgm ... questionable
 
 # REQUIRED!!! EOS will not start with the default empty value
-set_value EOS_GEOTAG '"::ISS"'
+set_value EOS_GEOTAG '"ISS::ALICE"'
 
 set_value EOS_MGM_MASTER1    '"mgm.spacescience.ro"'
 set_value EOS_MGM_MASTER2    '"mgm.spacescience.ro"'
