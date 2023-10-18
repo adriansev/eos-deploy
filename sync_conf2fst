@@ -24,8 +24,7 @@ ${SCP_CMD} /etc/mlsensor/mlsensor.properties ${FST}:/etc/mlsensor/
 ${SCP_CMD} iptables/iptables ${FST}:/etc/sysconfig/
 ${SCP_CMD} iptables/ip6tables ${FST}:/etc/sysconfig/
 
-ssh ${CTRL_OPT} ${FST} "systemctl enable mlsensor iptables ip6tables eos.target eos@fst; systemctl restart mlsensor iptables ip6tables; chown -R daemon:daemon /storage* /etc/quarkdb.pass;"
-echo "now run on ${FST}: systemctl restart eos@fst"
+ssh ${CTRL_OPT} ${FST} "systemctl enable mlsensor iptables ip6tables eos.target eos@fst; systemctl restart mlsensor iptables ip6tables; chown daemon:daemon /storage* /etc/quarkdb.pass; systemctl restart eos@fst;"
 }
 
 if [[ -z ${TGT} ]]; then
