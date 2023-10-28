@@ -17,7 +17,7 @@
 
 # xrootd access
 -A INPUT -p tcp -m state --state NEW -m tcp --dport 1095 -j ACCEPT
--A INPUT -p tcp -m state --state NEW -m tcp --dport 8001 -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8000 -j ACCEPT
 
 ## ML Speed rqst
 -A INPUT -m state --state NEW -p udp --dport 33434:33534 -j ACCEPT

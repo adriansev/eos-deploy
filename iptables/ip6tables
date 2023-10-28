@@ -10,7 +10,7 @@
 -A INPUT -m state --state NEW -m iprange --src-range 2001:b30:4210:1::20-2001:b30:4210:1::40 -j ACCEPT
 
 -A INPUT -p tcp -m state --state NEW -m tcp --dport 1095 -j ACCEPT
--A INPUT -p tcp -m state --state NEW -m tcp --dport 8001 -j ACCEPT
+-A INPUT -p tcp -m state --state NEW -m tcp --dport 8000 -j ACCEPT
 
 ## cockpit
 -A INPUT -p tcp -m state --state NEW -m tcp --dport 9090 -j ACCEPT --source 2001:b30:4210::/48
