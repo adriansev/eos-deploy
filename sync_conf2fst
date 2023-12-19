@@ -3,7 +3,7 @@
 TGT="${1}"
 shift
 
-FST_LIST="fst01 fst02 fst03 fst04 fst05 fst06 fst07 fst08 fst09 fst10 fst12 fst13 fst14 fst15" # fst11
+FST_LIST_ALL="fst01 fst02 fst03 fst04 fst05 fst06 fst07 fst08 fst09 fst10 fst11 fst12 fst13 fst14 fst15"
 
 CTRL_OPT="-o ControlMaster=auto -o ControlPersist=120 -o ControlPath=~/.ssh/%r@%h:%p"
 SCP_CMD="scp -4 -B -C -p ${CTRL_OPT}"
@@ -16,6 +16,7 @@ local FST
 FST="${1}"
 
 ${SCP_CMD} /tmp/eos_env ${FST}:/etc/sysconfig/
+${SCP_CMD} /etc/gai.conf ${FST}:/etc/
 ${SCP_CMD} /etc/xrd.cf.fst ${FST}:/etc/
 ${SCP_CMD} /etc/eos.keytab ${FST}:/etc/
 ${SCP_CMD} /etc/quarkdb.pass ${FST}:/etc/
@@ -23,16 +24,29 @@ ${SCP_CMD} /etc/ganglia/gmond.conf ${FST}:/etc/ganglia/
 ${SCP_CMD} /etc/mlsensor/mlsensor.properties ${FST}:/etc/mlsensor/
 ${SCP_CMD} iptables/iptables ${FST}:/etc/sysconfig/
 ${SCP_CMD} iptables/ip6tables ${FST}:/etc/sysconfig/
+ssh ${CTRL_OPT} ${FST} "mkdir -p /etc/systemd/system/eos@.service.d/"
+${SCP_CMD} /etc/systemd/system/eos@.service.d/override.conf ${FST}:/etc/systemd/system/eos@.service.d/
 
-ssh ${CTRL_OPT} ${FST} "systemctl enable mlsensor iptables ip6tables eos.target eos@fst; systemctl restart mlsensor iptables ip6tables; chown daemon:daemon /storage* /etc/quarkdb.pass; systemctl restart eos@fst;"
+ssh ${CTRL_OPT} ${FST} "systemctl daemon-reload; systemctl enable gmond mlsensor iptables ip6tables eos.target eos@fst; systemctl restart mlsensor iptables ip6tables; chown daemon:daemon /storage* /etc/quarkdb.pass;"
 }
+export -f sync_conf2fst
 
-if [[ -z ${TGT} ]]; then
-    for fst in ${FST_LIST} ; do
-        sync_conf2fst ${fst}
-    done
+if [[ $# -eq 0 ]] ; then
+    FST_LIST="${FST_LIST_ALL}"
 else
-    sync_conf2fst ${TGT}
+    FST_LIST="$*"
 fi
+
+for fst in ${FST_LIST} ; do
+    { sync_conf2fst ${fst}; } &
+done
+wait
 rm -rf /tmp/eos_env
 
+echo 'Now run:
+ssh fstX "systemctl restart eos@fst"
+
+OR
+
+for i in $(seq -w 1 15); do ssh fst${i} "systemctl restart eos@fst"; done
+'
