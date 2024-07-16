@@ -39,7 +39,7 @@ uncomment EOS_USE_SHARED_MUTEX
 uncomment EOS_FST_NO_SSS_ENFORCEMENT
 
 # Quarkdb setup
-set_value EOS_QUARKDB_HOSTPORT '"localhost:7001,localhost:7002,localhost:7003"'
+set_value EOS_QUARKDB_HOSTPORT '"mgm1.spacescience.ro:7000,mgm2.spacescience.ro:7000,mgm3.spacescience.ro:7000"'
 
 source ./quarkdb_priv  # contains the quarkdb password
 set_value EOS_QUARKDB_PASSWD "\'${REDIS_PASS}\'"

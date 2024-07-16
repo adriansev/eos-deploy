@@ -5,8 +5,8 @@ shift
 
 [[ -z ${NODE} ]] && { echo "No node was specified"; exit 1; }
 
-eos -b node config ${NODE}:1095 gw.rate=2000
-eos -b node config ${NODE}:1095 gw.ntx=100
+#eos -b node config ${NODE}:1095 gw.rate=2000
+#eos -b node config ${NODE}:1095 gw.ntx=100
 eos -b node txgw ${NODE}:1095 on
 
 # enable a fst node

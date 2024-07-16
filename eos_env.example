@@ -96,9 +96,6 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # Enable QoS support
 #EOS_ENABLE_QOS=""
 
-# Enable Converter Engine
-#EOS_CONVERTER_DRIVER=1
-
 # Allow UTF-8 path names excluding only CR,LF
 #EOS_UTF8=""
 
@@ -119,6 +116,9 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # If you want to report only quota accouting you can define
 # EOS_MGM_STATVFS_ONLY_QUOTA=1
 
+# If you only want to report the space acacounting you can define
+# EOS_MGM_STATVFS_ONLY_SPACE=1
+
 # If variable defined then enable the use of xrootd connection pool i.e.
 # create/share different physical connections for transfers to the same
 # destination xrootd server. By default this is disabled.
@@ -129,7 +129,7 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # When xrootd connection pool is enabled, one can control the maximum number
 # of physical connection that can be established with the destination server.
 # The min value is 1 and the max 1024. By default this 1024.
-# EOS_XRD_CONNECTION_POOL_SIZE=1024
+# EOS_XRD_CONNECTION_POOL_SIZE=128
 
 #-------------------------------------------------------------------------------
 # FST Configuration
@@ -164,16 +164,14 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # Modify the TPC key validity which by default is 120 seconds
 # EOS_FST_TPC_KEY_VALIDITY_SEC=120
 
-# Store FMD database on the same partition as the data disk
-# EOS_FST_FMD_ON_DATA_DISK=0
-
 # Control the asynchronous callback on close, if undefined or 0 then disabled,
-# else if 1 then enabled
+# else if 1 then enabled. This option is applied only for write operations.
 # EOS_FST_ASYNC_CLOSE=0
 
-# Enable caching of leveldb info in memory to speed up scanning operations
-# for fsck inconsistencies
-# EOS_FST_CACHE_LEVELDB=1
+# When asynchronous callback on close is enabled, one can use the following env
+# variable to control the minimum size of files for which this gets triggered.
+# If not specified then the values is 0 bytes.
+# EOS_FST_ASYNC_CLOSE_MIN_SIZE_BYTES=0
 
 # Enable internal stacktrace printing in the logs - this is useful especially
 # for container environments where abrtd is not running
@@ -183,15 +181,57 @@ EOS_NOTIFY="mail -s `date +%s`-`hostname`-eos-notify $EOS_MAIL_CC"
 # FSTs with long latency.
 # EOS_FST_REPLICA_ASYNC_WRITE=1
 
+# If this variable is present then deletion requests coming from the Fsck
+# engine are actually performed as a move on the file system mount in a special
+# directory called .eosdeletions. By default disabled.
+# EOS_FST_FSCK_DELETE_BY_MOVE=1
+
+# This variable overwrites the FST hostname in MGM redirection
+# - use it when the internal name is different from the external name
+# EOS_FST_ALIAS=""
+
+# This variable overwrites the FST port in MGM redirection
+# - use it when the internal name is different from the external name
+# EOS_FST_PORT_ALIAS=1094
+
+# Enable XrdIo read-ahead functionality. By default disabled ie. 0.
+# EOS_FST_XRDIO_READAHEAD=0
+
+# Force disable XrdIo read-ahead even if this is enabled by using the above
+# env variable or through the fst.readahead opaque information. By default
+# disabled ie. 0 This can be useful in case read-ahead needs to be disabled
+# instance wide.
+# EOS_FST_XRDIO_READAHEAD_FORCE_DISABLE=0
+
+# In case XrdIo read-ahead is enabled this can control the number of blocks that
+# are pre-fetched. By default this is set to 2.
+# EOS_FST_XRDIO_READAHEAD_BLOCKS=2
+
+# In case XrdIo read-ahead is enabled this controls the block size of requests
+# that are pre-fetched. By default this is set to 1024*1024 (1MB).
+# EOS_FST_XRDIO_READAHEAD_BLOCK_SIZE=1024*1024
+
+# XFS filesystems will use file allocation, other filesystems like EXT4 and BTRFS will not use fallocation
+# unless the following variable is defined (the value is not considered)
+# EOS_FST_POSIX_FALLOCATE=1
+
 #-------------------------------------------------------------------------------
-# HTTPD Configuration
+# Libmicrohttpd configuration
 #-------------------------------------------------------------------------------
 # HTTP server ports
 
-# MGM - set to 0 to disable HTTP
+# MGM - by default libmicrohttpd is disabled i.e. 0. To enable it one needs
+# to set the following env variable to 1 and a non-zero value for the port.
+# EOS_MGM_ENABLE_LIBMICROHTTPD=0
+
+# MGM - set to 0 to disable libmicrohttpd implementation
 # EOS_MGM_HTTP_PORT=8000
 
-# FST - set to 0 to disable HTTP
+# FST - by default libmicrohttpd is disabled i.e. 0. To enable it one needs
+# to set the following env variable to 1 and a non-zero value for the port.
+# EOS_FST_ENABLE_LIBMICROHTTPD=0
+
+# FST - set to 0 to disable libmicrohttpd implementation
 # EOS_FST_HTTP_PORT=8001
 
 # HTTP uses by default one thread per connection
@@ -207,11 +247,6 @@ EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
 
 # Timeout after which an idle connection is considered to be closed (default 2 min)
 # EOS_HTTP_CONNECTION_TIMEOUT=120
-
-# Enable XrdHttp with NGINX proxy - this opens a security issue if enabled since direct clients can overwrite their
-# IP and pretend to be localhost
-# EOS_XRDHTTP_NGINX_PROXY=1 (default undefined)
-
 
 #-------------------------------------------------------------------------------
 # GRPC Configuration
@@ -236,6 +271,20 @@ EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
 # EOS_MGM_WNC_SSL_CERT
 # EOS_MGM_WNC_SSL_KEY
 # EOS_MGM_WNC_SSL_CA
+
+#-------------------------------------------------------------------------------
+# REST API dedicated GRPC service
+#-------------------------------------------------------------------------------
+
+# Enable the REST API support. The effect of this env variable depends if the
+# code has been built with grpc-gateway (eos-grpc-gateway) support or not. To
+# have a fully functional REST API both conditions (built-in support and env
+# variable set to 1) need to be satisfied. Disabled by default i.e. 0.
+# EOS_MGM_ENABLE_REST_API=0
+
+# Set the port for the internal GRPC server handling the REST API requests.
+# Default value is 500054.
+# EOS_MGM_REST_GRPC_PORT=50054
 
 #-------------------------------------------------------------------------------
 # FUSEX Configuration
@@ -374,3 +423,14 @@ EOS_TTY_BROACAST_EGREP="\"CRIT|ALERT|EMERG|PROGRESS\""
 # ------------------------------------------------------------------
 # by default the token generation key is derived from an sss key
 # EOS_MGM_TOKEN_KEYFILE=/etc/eos/token.key
+
+# ------------------------------------------------------------------
+# MGM Device Tracking
+# ------------------------------------------------------------------
+# change the interval at which the MGM takes out compressed JSON S.M.A.R.T info and publishes them
+# EOS_MGM_DEVICES_PUBLISHING_INTERVAL=900
+
+# ------------------------------------------------------------------
+# MGM SciToken Cache
+# ------------------------------------------------------------------
+XDG_CACHE_HOME=/var/tmp/

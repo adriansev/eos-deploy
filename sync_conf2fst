@@ -24,10 +24,10 @@ ${SCP_CMD} /etc/ganglia/gmond.conf ${FST}:/etc/ganglia/
 ${SCP_CMD} /etc/mlsensor/mlsensor.properties ${FST}:/etc/mlsensor/
 ${SCP_CMD} iptables/iptables ${FST}:/etc/sysconfig/
 ${SCP_CMD} iptables/ip6tables ${FST}:/etc/sysconfig/
-ssh ${CTRL_OPT} ${FST} "mkdir -p /etc/systemd/system/eos@.service.d/"
-${SCP_CMD} /etc/systemd/system/eos@.service.d/override.conf ${FST}:/etc/systemd/system/eos@.service.d/
 
-ssh ${CTRL_OPT} ${FST} "systemctl daemon-reload; systemctl enable gmond mlsensor iptables ip6tables eos.target eos@fst; systemctl restart mlsensor iptables ip6tables; chown daemon:daemon /storage* /etc/quarkdb.pass;"
+# ssh ${CTRL_OPT} ${FST} "mkdir -p /etc/systemd/system/eos@.service.d/"
+# ${SCP_CMD} /etc/systemd/system/eos@.service.d/override.conf ${FST}:/etc/systemd/system/eos@.service.d/
+
 }
 export -f sync_conf2fst
 

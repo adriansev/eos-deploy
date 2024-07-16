@@ -6,14 +6,6 @@ if [[ ! -e "/etc/grid-security/hostcert.pem" ]]; then
     openssl req -new -x509 -days 3650 -nodes -out /etc/grid-security/hostcert.pem -keyout /etc/grid-security/hostkey.pem >& /dev/null<< EOF
 
 
-
-
-
-
-
-
-
-
 EOF
 fi
 

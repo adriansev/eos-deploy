@@ -1,0 +1,304 @@
+# Make sure that EOS-xrootd libs can be directly found
+LD_LIBRARY_PATH=/opt/eos/xrootd/lib64
+
+# Should we run with another limit on the core file size other than the default?
+DAEMON_COREFILE_LIMIT=unlimited
+
+# Preload jemalloc
+LD_PRELOAD=/usr/lib64/libjemalloc.so
+
+# Disable the KRB5 replay cache
+KRB5RCACHETYPE=none
+
+EOS_FST_POSIX_FALLOCATE=1
+
+# What roles should the xroot daemon run for. For each role you can overwrite the default options using a dedicate sysconfig file e.g. /etc/sysconfig/xrd.<role>.
+# The role based mechanism allows for multiple xrd's running with different options to be controlled via the same systemd script
+
+#-------------------------------------------------------------------------------
+# EOS roles - Systemd Services
+#-------------------------------------------------------------------------------
+# XRD_ROLES="mq mgm fed sync fst"
+XRD_ROLES="mq mgm"
+
+#-------------------------------------------------------------------------------
+# EOS Configuration
+#-------------------------------------------------------------------------------
+
+# The fully qualified hostname of current MGM
+EOS_MGM_HOST='mgm.spacescience.ro'
+
+# The fully qualified hostname of target MGM
+# EOS_MGM_HOST_TARGET=mgm-slave.localdomain
+
+# The EOS instance name N.B.! It MUST start with "eos" and then some alphanumeric characters
+# This is important since there are some special files and directories created inside the /eos/<instance_name> subtree
+# indispensable for the proper functioning of the instance.
+EOS_INSTANCE_NAME='eosalice'
+
+# The EOS configuration to load after daemon start
+EOS_AUTOLOAD_CONFIG=default
+
+# The EOS broker URL
+EOS_BROKER_URL="root://localhost:1097//eos/"
+
+# The EOS host geo location tag used to sort hosts into geographical (rack) locations
+# !!! REQUIRED !!! list of ":" separated tokens of up to 8 chars
+EOS_GEOTAG="ISS::ALICE"
+
+# The fully qualified hostname of MGM master1
+EOS_MGM_MASTER1='mgm.spacescience.ro'
+
+# The fully qualified hostname of MGM master2
+EOS_MGM_MASTER2='mgm.spacescience.ro'
+
+# The alias which selects master 1 or 2
+EOS_MGM_ALIAS='mgm.spacescience.ro'
+
+# In HA mode, presence of this env enables the redirection of the read traffic from the slaves to the master
+# EOS_HA_REDIRECT_READS=1
+
+# The mail notification in case of fail-over
+EOS_MAIL_CC="glite@spacescience.ro"
+EOS_NOTIFY="mail -s $(date +%s)-$(hostname)-eos-notify $EOS_MAIL_CC"
+
+# Enable core dumps initiated internally
+#EOS_CORE_DUMP
+
+# Disable shutdown/signal handlers for debugging
+#EOS_NO_SHUTDOWN
+
+# Enable coverage report signal handler
+#EOS_COVERAGE_REPORT
+
+# Enable QoS support
+#EOS_ENABLE_QOS=""
+
+# Allow UTF-8 path names excluding only CR,LF
+#EOS_UTF8=""
+
+# Add secondary group information from database/LDAP (set to 1 to enable)
+#EOS_SECONDARY_GROUPS=0
+
+# Do subtree accounting on directories (set to 1 to enable)
+EOS_NS_ACCOUNTING=1
+
+# Do sync time propagation (set to 1 to enable)
+#EOS_SYNCTIME_ACCOUNTING=0
+
+# Use std::shared_timed_mutex for the RWMutex implementation - uncomment to enable.
+EOS_USE_SHARED_MUTEX=1
+
+# By default statvfs reports the total space if the path deepness is < 4; If you want to report only quota accouting you can define
+# EOS_MGM_STATVFS_ONLY_QUOTA=1
+
+# If you only want to report the space acacounting you can define
+# EOS_MGM_STATVFS_ONLY_SPACE=1
+
+# If variable defined then enable the use of xrootd connection pool
+# i.e. create/share different physical connections for transfers to the same destination xrootd server. By default this is disabled.
+# This applies both in context of the MGM server when it comes to TPC jobs and also on the FST server for FST to FST transfers.
+# EOS_XRD_USE_CONNECTION_POOL=1
+
+# When xrootd connection pool is enabled, one can control the maximum number of physical connection that can be established with the destination server.
+# The min value is 1 and the max 1024. By default this 1024.
+# EOS_XRD_CONNECTION_POOL_SIZE=64
+
+#-------------------------------------------------------------------------------
+# FST Configuration
+#-------------------------------------------------------------------------------
+
+# Disable 'sss' enforcement to allow generic TPC
+EOS_FST_NO_SSS_ENFORCEMENT=1
+
+# Network interface to monitor (default eth0)
+EOS_FST_NETWORK_INTERFACE="eno1"
+
+# Specify in seconds how often FSTs should query for new delete operations
+EOS_FST_DELETE_QUERY_INTERVAL=300
+
+# Disable fast boot and always do a full resync when a fs is booting (default off)
+# EOS_FST_NO_FAST_BOOT=0
+
+# If variable defined then enable the use of xrootd connection pool i.e. create/share different physical connections for queries done from the FST
+# to the MGM in the CallManager method. By default this is disabled.
+# EOS_FST_CALL_MANAGER_XRD_POOL=1
+
+# If CallManager xrootd connection pool is enabled one can set the maxium size of the pool of connections.
+# The min value is 1, the max value is 32. By default the value is 10.
+# EOS_FST_CALL_MANAGER_XRD_POOL_SIZE=16
+
+# If variable defined use asynchronous (double-buffered) reading in TPCs - By default it is undefined = disabled
+# EOS_FST_TPC_READASYNC=1
+
+# Modify the TPC key validity which by default is 120 seconds
+# EOS_FST_TPC_KEY_VALIDITY_SEC=120
+
+# Store FMD database on the same partition as the data disk
+# EOS_FST_FMD_ON_DATA_DISK=0
+
+# Control the asynchronous callback on close, if undefined or 0 then disabled, else if 1 then enabled.
+# EOS_FST_ASYNC_CLOSE=0
+
+# When asynchronous callback on close is enabled, one can use the following env variable to control
+# the minimum size of files for which this gets triggered. If not specified then the values is 0 bytes.
+# EOS_FST_ASYNC_CLOSE_MIN_SIZE_BYTES=0
+
+# Enable internal stacktrace printing in the logs - this is useful especially for container environments where abrtd is not running
+# EOS_FST_ENABLE_STACKTRACE=1
+
+# Enable async writes between replicas - this can improve the performance for FSTs with long latency.
+# EOS_FST_REPLICA_ASYNC_WRITE=1
+
+# If this variable is present then deletion requests coming from the Fsck engine are actually
+# performed as a move on the file system mount in a special directory called .eosdeletions. By default disabled.
+# EOS_FST_FSCK_DELETE_BY_MOVE=1
+
+# Enable XrdIo read-ahead functionality. By default disabled ie. 0.
+# EOS_FST_XRDIO_READAHEAD=0
+
+# Force disable XrdIo read-ahead even if this is enabled by using the above env variable or through the fst.readahead opaque information.
+# By default disabled ie. 0 This can be useful in case read-ahead needs to be disabled instance wide.
+# EOS_FST_XRDIO_READAHEAD_FORCE_DISABLE=0
+
+# In case XrdIo read-ahead is enabled this can control the number of blocks that are pre-fetched. By default this is set to 2.
+# EOS_FST_XRDIO_READAHEAD_BLOCKS=2
+
+# In case XrdIo read-ahead is enabled this controls the block size of requests that are pre-fetched. By default this is set to 1024*1024 (1MB).
+# EOS_FST_XRDIO_READAHEAD_BLOCK_SIZE=1024*1024
+
+#-------------------------------------------------------------------------------
+# Libmicrohttpd configuration
+#-------------------------------------------------------------------------------
+# HTTP server ports
+
+# MGM - by default libmicrohttpd is disabled i.e. 0. To enable it one needs to set the following env variable to 1 and a non-zero value for the port.
+EOS_MGM_ENABLE_LIBMICROHTTPD=1
+
+# MGM - set to 0 to disable libmicrohttpd implementation
+EOS_MGM_HTTP_PORT=8000
+
+# FST - by default libmicrohttpd is disabled i.e. 0. To enable it one needs to set the following env variable to 1 and a non-zero value for the port.
+EOS_FST_ENABLE_LIBMICROHTTPD=1
+
+# FST - set to 0 to disable libmicrohttpd implementation
+EOS_FST_HTTP_PORT=8000
+
+# HTTP uses by default one thread per connection
+# EOS_HTTP_THREADPOOL="threads"
+
+# Use EPOLL and 16 threads
+EOS_HTTP_THREADPOOL="epoll"
+EOS_HTTP_THREADPOOL_SIZE=16
+
+# Memory buffer size per connection
+# EOS_HTTP_CONNECTION_MEMORY_LIMIT=134217728 (default 128M)
+EOS_HTTP_CONNECTION_MEMORY_LIMIT=4194304
+
+# Timeout after which an idle connection is considered to be closed (default 2 min)
+EOS_HTTP_CONNECTION_TIMEOUT=30
+
+#-------------------------------------------------------------------------------
+# GRPC Configuration
+#-------------------------------------------------------------------------------
+
+# GRPC port - set to 0 toi disable GRPC
+# EOS_MGM_GRPC_PORT=50051
+
+# GRPC security - define to enable SSL server
+# EOS_MGM_GRPC_SSL_CERT
+# EOS_MGM_GRPC_SSL_KEY
+# EOS_MGM_GRPC_SSL_CA
+
+#-------------------------------------------------------------------------------
+# REST API dedicated GRPC service
+#-------------------------------------------------------------------------------
+
+# Enable the REST API support. The effect of this env variable depends if the code has been built with grpc-gateway (eos-grpc-gateway) support or not.
+# To have a fully functional REST API both conditions (built-in support and env variable set to 1) need to be satisfied. Disabled by default i.e. 0.
+EOS_MGM_ENABLE_REST_API=1
+
+# Set the port for the internal GRPC server handling the REST API requests. Default value is 500054.
+EOS_MGM_REST_GRPC_PORT=50054
+
+#-------------------------------------------------------------------------------
+# FUSEX Configuration
+#-------------------------------------------------------------------------------
+
+# Listener port of the ZMQ server used by FUSEx)
+# EOS_MGM_FUSEX_PORT=1100
+
+# Maximum number of 'listable' children
+# EOS_MGM_FUSEX_MAX_CHILDREN=32768
+
+#-------------------------------------------------------------------------------
+# QuarkDB Configuration
+#-------------------------------------------------------------------------------
+EOS_USE_QDB_MASTER=1
+
+#-------------------------------------------------------------------------------
+# MGM TTY Console Broadcast Configuration
+#-------------------------------------------------------------------------------
+
+# define the log file where you want to grep
+EOS_TTY_BROADCAST_LISTEN_LOGFILE="/var/log/eos/mgm/xrdlog.mgm"
+
+# define the log file regex you want to broad cast to all consoles
+EOS_TTY_BROACAST_EGREP="\"CRIT|ALERT|EMERG|PROGRESS\""
+
+#-------------------------------------------------------------------------------
+# MGM Namespace Preset Size - this can safe memory for large namespaces if you know an upper limit for the namespace size
+#-------------------------------------------------------------------------------
+# EOS_NS_DIR_SIZE=1000000
+# EOS_NS_FILE_SIZE=1000000
+
+# ------------------------------------------------------------------
+# MGM Boot options
+# ------------------------------------------------------------------
+
+# uncomment to avoid mmaping a changelog file
+# EOS_NS_BOOT_NOMMAP
+
+# uncomment to speed up the scanning phase skipping CRC32 computation
+EOS_NS_BOOT_NOCRC32=1
+
+# uncomment to allow a multi-threaded boot process using maximum number of cores available
+EOS_NS_BOOT_PARALLEL=1
+
+# ------------------------------------------------------------------
+# MGM FUSE configuration
+# ------------------------------------------------------------------
+
+# uncomment to change the minimum needed size available to create a new file
+# EOS_MGM_FUSE_BOOKING_SIZE = 5368709120
+
+# ------------------------------------------------------------------
+# MGM 'xrdfs query space' configuration
+# ------------------------------------------------------------------
+
+# uncoment to set the EOS space name to be used by 'xrdfs query space' commands that do not explicitly specify an EOS space name
+EOS_MGM_STATVFS_DEFAULT_SPACE="default"
+
+# ------------------------------------------------------------------
+# MGM Directory Listing Cache configuration
+
+# set to 0 to disable listing cache for 'xrdfs ls' and 'eos ls', or a number with the number of dirs to cache
+# EOS_MGM_LISTING_CACHE=1024
+
+# ------------------------------------------------------------------
+# MGM OIDC configuration
+# ------------------------------------------------------------------
+
+# by default the sub field is mapped from OIDC tokens
+# EOS_MGM_OIDC_MAP_FIELD=sub
+
+# by default (undefined) the server certificate and hostname are verified, to skip this, define
+# EOS_MGM_OIDC_INSECURE=1
+
+# ------------------------------------------------------------------
+# MGM token generation configuration
+# ------------------------------------------------------------------
+
+# by default the token generation key is derived from an sss key
+# EOS_MGM_TOKEN_KEYFILE=/etc/eos/token.key
+

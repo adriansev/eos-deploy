@@ -1,0 +1,8 @@
+if exec xrootd
+  xrd.port 7000
+  xrd.protocol redis:7000 /usr/lib64/libXrdQuarkDB.so
+  redis.mode raft
+  redis.database /var/lib/quarkdb/qdb0
+  redis.password_file /etc/quarkdb.pass
+  redis.myself mgm1.spacescience.ro:7000
+fi
