@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+
+# clean up files bigger than 1G
+find /var/eos/report/ -type f -size +1G -delete
+
+# clean up files older than 40 days
+find /var/eos/report/eos/alice/grid -type f -mtime +40 -delete
+
